@@ -3,7 +3,7 @@ import math
 import os
 
 # ==========================================
-# SAYFA AYARLARI (Başlık ve Genişlik)
+# SAYFA AYARLARI
 # ==========================================
 st.set_page_config(
     page_title="İTÜ - Açık İşletme Tasarımı",
@@ -72,91 +72,74 @@ KOT_UST = KOT_ALT.copy()
 # ARAYÜZ TASARIMI
 # ==========================================
 
-# CSS ile Başlık Stili (İTÜ renklerine uygun)
+# CSS
 st.markdown("""
     <style>
-    .main-title {
-        font-family: 'Segoe UI', sans-serif;
-        color: #002451;
-        text-align: center;
-        font-weight: bold;
-        margin-bottom: 0px;
-    }
-    .sub-title {
-        font-family: 'Segoe UI', sans-serif;
-        color: gray;
-        text-align: center;
-        font-weight: bold;
-        font-size: 14px;
-        margin-top: 0px;
-    }
-    .footer {
-        position: fixed;
-        left: 0;
-        bottom: 0;
-        width: 100%;
-        background-color: #f1f1f1;
-        color: #999999;
-        text-align: center;
-        font-style: italic;
-        padding: 10px;
-    }
+    .main-title { font-family: 'Segoe UI'; color: #002451; text-align: center; font-weight: bold; margin-bottom: 0px; }
+    .sub-title { font-family: 'Segoe UI'; color: gray; text-align: center; font-weight: bold; font-size: 14px; margin-top: 0px; }
+    .footer { position: fixed; left: 0; bottom: 0; width: 100%; background-color: #f1f1f1; color: #999999; text-align: center; font-style: italic; padding: 10px; }
     </style>
 """, unsafe_allow_html=True)
 
-# --- LOGOLAR VE BAŞLIK ---
+# --- LOGOLAR ---
 col1, col2, col3 = st.columns([1, 4, 1])
-
 with col1:
-    if os.path.exists("itu.png"):
-        st.image("itu.png", width=160)
-    else:
-        st.write("İTÜ")
-
+    if os.path.exists("itu.png"): st.image("itu.png", width=80)
+    else: st.write("İTÜ")
 with col2:
     st.markdown("<div class='sub-title'>İSTANBUL TEKNİK ÜNİVERSİTESİ<br>MADEN FAKÜLTESİ</div>", unsafe_allow_html=True)
     st.markdown("<div class='main-title'>MAD 515 AÇIK OCAK MADEN TASARIMI</div>", unsafe_allow_html=True)
     st.markdown("<div class='main-title' style='font-size: 18px;'>İZOHİPS HESAPLAMA PROGRAMI</div>", unsafe_allow_html=True)
-
 with col3:
-    if os.path.exists("maden.png"):
-        st.image("maden.png", width=160)
-    else:
-        st.write("MADEN")
-
+    if os.path.exists("maden.png"): st.image("maden.png", width=80)
+    else: st.write("MADEN")
 st.markdown("---")
 
-# --- KULLANICI GİRİŞLERİ ---
+# --- KULLANIM KILAVUZU (GENİŞLETİLEBİLİR) ---
+with st.expander("📘 **NASIL KULLANILIR? (Detaylı Kılavuz - Tıkla Aç/Kapat)**", expanded=False):
+    st.markdown("""
+    Bu araç, İTÜ Maden Mühendisliği Açık İşletme dersi kapsamında **Lineer Enterpolasyon** yöntemi ile izohips noktalarını belirlemek için tasarlanmıştır.
+    
+    #### 🛠️ Adım Adım İşlem Sırası:
+    
+    **1. Harita Modunu Seçin:**
+    * Sistemde iki farklı kot verisi vardır. Çalıştığınız haritaya göre **"Üst Kot"** veya **"Alt Kot"** seçeneğini işaretleyin.
+    
+    **2. Sondajları Belirleyin:**
+    * **Başlangıç Sondajı:** Üçgenleme yaparken referans aldığınız ilk sondajı seçin.
+    * **Bitiş Sondajı:** Diğer sondajlar otomatik olarak filtrelenir. Bağlantı kuracağınız ikinci sondajı seçin.
+    
+    **3. Hesaplama:**
+    * `HESAPLA` butonuna basın. Program kot farkını ve harita üzerindeki mesafeyi otomatik analiz eder.
+    
+    #### 📏 Sonuçları Haritaya İşleme:
+    * Program size bir tablo verecektir.
+    * **Kümülatif Mesafe:** Başlangıç sondajından itibaren cetvel ile ölçmeniz gereken uzaklıktır.
+    * Örneğin tabloda `300 Kotu | 2.4 cm` yazıyorsa;
+        * Cetvelin 0 noktasını Başlangıç Sondajına koyun.
+        * 2.4 cm'ye bir nokta koyun.
+        * Bu nokta **300 metre** izohipsinin geçtiği yerdir.
+    
+    *Bu yazılım Emir Can Gül tarafından geliştirilmiştir.*
+    """)
 
-# 1. Harita Modu Seçimi
+# --- GİRİŞ ALANI ---
 mod_secimi = st.radio("Çalışılacak Harita:", ("Üst Kot Haritası", "Alt Kot Haritası"), horizontal=True)
 
-# 2. Sondaj Seçimleri (Yan Yana)
 col_s1, col_s2 = st.columns(2)
-
 with col_s1:
-    # Tüm sondajları alfabetik/sayısal sıraya diz
     sondaj_listesi = sorted(list(CONNECTIONS.keys()), key=lambda x: (len(x), x))
     sondaj1 = st.selectbox("Başlangıç Sondajı:", sondaj_listesi)
-
 with col_s2:
-    # Seçilen 1. sondaja bağlı olanları getir
-    if sondaj1 in CONNECTIONS:
-        bagli_sondajlar = list(CONNECTIONS[sondaj1].keys())
-    else:
-        bagli_sondajlar = []
-    
+    if sondaj1 in CONNECTIONS: bagli_sondajlar = list(CONNECTIONS[sondaj1].keys())
+    else: bagli_sondajlar = []
     sondaj2 = st.selectbox("Bitiş Sondajı (Bağlı Olanlar):", bagli_sondajlar)
 
-# ==========================================
-# HESAPLAMA BUTONU VE MANTIK
-# ==========================================
-
+# --- HESAPLAMA ---
 if st.button("HESAPLA", type="primary", use_container_width=True):
     if not sondaj1 or not sondaj2:
         st.error("Lütfen iki sondajı da seçiniz.")
     else:
-        # Hangi veri setini kullanacağız?
         if mod_secimi == "Üst Kot Haritası":
             active_kot_list = KOT_UST
             mode_name = "ÜST KOT"
@@ -164,7 +147,6 @@ if st.button("HESAPLA", type="primary", use_container_width=True):
             active_kot_list = KOT_ALT
             mode_name = "ALT KOT"
 
-        # Kotları ve mesafeyi al
         kot1 = active_kot_list.get(sondaj1)
         kot2 = active_kot_list.get(sondaj2)
         mesafe_cm = CONNECTIONS[sondaj1].get(sondaj2, 0)
@@ -173,11 +155,8 @@ if st.button("HESAPLA", type="primary", use_container_width=True):
             st.error(f"HATA: {sondaj1} veya {sondaj2} için kot verisi bulunamadı.")
         else:
             kot_farki_total = abs(kot1 - kot2)
-
-            # --- SONUÇLARI GÖSTER ---
             st.success(f"Hesaplama Başarılı: {sondaj1} -> {sondaj2}")
             
-            # Bilgi Kartları
             c1, c2, c3 = st.columns(3)
             c1.metric("Başlangıç Kotu", f"{kot1} m")
             c2.metric("Bitiş Kotu", f"{kot2} m")
@@ -189,10 +168,8 @@ if st.button("HESAPLA", type="primary", use_container_width=True):
                 cm_per_meter = mesafe_cm / kot_farki_total
                 st.info(f"**Eğim Faktörü:** Her 1 metre fark için **{cm_per_meter:.4f} cm** ilerlenir.")
 
-                # TABLO VERİSİNİ HAZIRLA
                 data_rows = []
-
-                if kot1 < kot2: # YÜKSELİYOR
+                if kot1 < kot2: # Yükseliyor
                     next_contour = (math.floor(kot1 / 5) + 1) * 5
                     while next_contour < kot2:
                         delta_h = next_contour - kot1
@@ -200,8 +177,7 @@ if st.button("HESAPLA", type="primary", use_container_width=True):
                         if dist_from_start > mesafe_cm: break
                         data_rows.append({"İzohips (m)": int(next_contour), "Kümülatif Mesafe (cm)": f"{dist_from_start:.2f}"})
                         next_contour += 5
-                
-                else: # ALÇALIYOR
+                else: # Alçalıyor
                     next_contour = (math.ceil(kot1 / 5) - 1) * 5
                     while next_contour > kot2:
                         delta_h = kot1 - next_contour
@@ -210,18 +186,8 @@ if st.button("HESAPLA", type="primary", use_container_width=True):
                         data_rows.append({"İzohips (m)": int(next_contour), "Kümülatif Mesafe (cm)": f"{dist_from_start:.2f}"})
                         next_contour -= 5
 
-                # Tabloyu Çiz
-                if data_rows:
-                    st.table(data_rows)
-                else:
-                    st.warning("Bu iki sondaj arasından 5m'lik izohips geçmiyor.")
+                if data_rows: st.table(data_rows)
+                else: st.warning("Bu iki sondaj arasından 5m'lik izohips geçmiyor.")
 
 # --- FOOTER ---
-st.markdown(
-    """
-    <div class='footer'>
-        Prepared by Emir Can Gül
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+st.markdown("<div class='footer'>Prepared by Emir Can Gül</div>", unsafe_allow_html=True)
